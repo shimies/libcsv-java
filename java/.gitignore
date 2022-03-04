@@ -1,0 +1,12 @@
+# Ignore gradle related files and directories
+.gradle/
+build/
+
+# Ignore editor or ide related files and directories
+/.vscode/
+.settings/
+.classpath
+.project
+
+# OS related files and directories
+.DS_Store
