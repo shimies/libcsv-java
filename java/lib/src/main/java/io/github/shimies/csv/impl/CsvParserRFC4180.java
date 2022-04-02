@@ -301,7 +301,7 @@ public class CsvParserRFC4180 implements ICsvParser {
 
         private CharacterClass mapCodePoint(int codePoint) {
             CharacterClass type = CharacterClass.LETTER;
-            if (!hasNext())
+            if (codePoint < 0)
                 type = CharacterClass.EOF;
             else if (codePoint == delimiter)
                 type = CharacterClass.DELIM;

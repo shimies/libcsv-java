@@ -155,7 +155,7 @@ public class CsvFormatterRFC4180 implements ICsvFormatter {
 
         private TokenKind mapCodePoint(int codePoint) {
             TokenKind type = TokenKind.NO_ESCAPE_NEEDED;
-            if (!hasNext())
+            if (codePoint < 0)
                 type = null;
             else if (codePoint == CP_DOUBLE_QUOTE)
                 type = TokenKind.MUST_ESCAPE_DQUOTE;
