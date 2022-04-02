@@ -118,7 +118,7 @@ public abstract class ParserTest {
     protected void testEmptyCsv() throws IOException {
         String csv = "";
         List<List<String>> records = parser.parseString(csv);
-        assertEquals(records.size(), 0);
+        assertEquals(0, records.size());
     }
 
     @Test
@@ -250,7 +250,7 @@ public abstract class ParserTest {
         String csv = util.toCsvByDuplicatingField(fieldEscaped, nRecords, nFields);
         List<List<String>> records = parser.parseString(csv);
         if (stripFields() && !mustEscape)
-            field = field.trim(); // use trim() provided no unicode whitespaces are used in tests
+            field = field.strip();
         assertNotNull(records);
         assertEquals(nRecords, records.size());
         for (List<String> record : records) {
