@@ -22,16 +22,21 @@ repositories {
 
 dependencies {
     // Use JUnit Jupiter for testing.
-    testImplementation("org.junit.jupiter:junit-jupiter:5.7.2")
-    testImplementation("org.mockito:mockito-junit-jupiter:3.12.4")
+    testImplementation(platform("org.junit:junit-bom:5.13.4"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
-        vendor.set(JvmVendorSpec.ADOPTIUM)
-        implementation.set(JvmImplementation.VENDOR_SPECIFIC)
+        languageVersion = JavaLanguageVersion.of(21)
+        vendor = JvmVendorSpec.ADOPTIUM
+        implementation = JvmImplementation.VENDOR_SPECIFIC
     }
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    options.release = 11
 }
 
 tasks.named<Test>("test") {
@@ -43,7 +48,7 @@ tasks.named<Test>("test") {
 }
 
 tasks.named<Jar>("jar") {
-    // archiveBaseName.set(rootProject.name)
+    archiveBaseName = rootProject.name
     manifest {
         attributes(mapOf("Implementation-Title" to project.name,
                          "Implementation-Version" to project.version))
