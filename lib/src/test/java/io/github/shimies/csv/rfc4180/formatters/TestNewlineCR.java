@@ -5,19 +5,18 @@ import io.github.shimies.csv.rfc4180.FormatterTest;
 
 public class TestNewlineCR extends FormatterTest {
 
-    @Override
-    protected int delimiter() {
-        return ',';
-    }
+  @Override
+  protected int delimiter() {
+    return ',';
+  }
 
-    @Override
-    protected boolean allowRecordEndWithEmptyField() {
-        return false;
-    }
+  @Override
+  protected boolean allowRecordEndWithEmptyField() {
+    return false;
+  }
 
-    @Override
-    protected Newline newline() {
-        return Newline.CR;
-    }
-
+  @Override
+  protected Newline newline() {
+    return Newline.CR;
+  }
 }

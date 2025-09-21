@@ -4,19 +4,18 @@ import io.github.shimies.csv.Newline;
 
 public class TestCsvWithLastNewline extends DefaultTest4CsvVariation {
 
-    @Override
-    protected boolean newlineBeforeEof() {
-        return true;
-    }
+  @Override
+  protected boolean newlineBeforeEof() {
+    return true;
+  }
 
-    @Override
-    protected int delimiter() {
-        return ',';
-    }
+  @Override
+  protected int delimiter() {
+    return ',';
+  }
 
-    @Override
-    protected Newline newline() {
-        return Newline.CRLF;
-    }
-
+  @Override
+  protected Newline newline() {
+    return Newline.CRLF;
+  }
 }
