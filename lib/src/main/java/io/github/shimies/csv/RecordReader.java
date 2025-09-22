@@ -6,7 +6,7 @@ import java.util.List;
 
 /**
  * A CSV record reader that reads a record from a specific source sequentially. Classes implementing
- * this interface must be mutable, and thus may not be thread safe.
+ * this interface must be mutable, thus may not be thread-safe.
  */
 public interface RecordReader {
 
@@ -16,7 +16,9 @@ public interface RecordReader {
 
   default List<List<String>> readAllRecords() throws IOException {
     List<List<String>> records = new ArrayList<>();
-    while (hasMoreRecord()) records.add(readRecord());
+    while (hasMoreRecord()) {
+      records.add(readRecord());
+    }
     return records;
   }
 }

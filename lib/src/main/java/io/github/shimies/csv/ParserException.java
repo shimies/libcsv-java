@@ -40,13 +40,15 @@ public class ParserException extends IOException implements TextLocator {
 
   private String appendTextLocation(String base) {
     List<String> xs = new ArrayList<>();
-    if (lineNo >= 0) xs.add(new StringBuilder().append('L').append(lineNo).toString());
-    if (characterNo >= 0) xs.add(new StringBuilder().append('C').append(characterNo).toString());
-    if (xs.size() == 0) return base;
-    StringBuilder sb = new StringBuilder(base).append(' ');
-    sb.append('[');
-    sb.append(String.join(",", xs));
-    sb.append(']');
-    return sb.toString();
+    if (lineNo >= 0) {
+      xs.add("L" + lineNo);
+    }
+    if (characterNo >= 0) {
+      xs.add("C" + characterNo);
+    }
+    if (xs.isEmpty()) {
+      return base;
+    }
+    return base + ' ' + '[' + String.join(",", xs) + ']';
   }
 }

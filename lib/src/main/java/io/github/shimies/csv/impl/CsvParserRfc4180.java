@@ -4,21 +4,20 @@ import io.github.shimies.csv.CsvParser;
 import io.github.shimies.csv.ParserException;
 import io.github.shimies.csv.RecordReader;
 import io.github.shimies.csv.TextLocator;
-import io.github.shimies.csv.Token;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * RFC 4180 implementation of {@code ICsvParser}.
+ * RFC 4180 implementation of {@code CsvParser}.
  *
  * <p>Besides a comma defined as the field delimiter in RFC 4180, arbitrary Unicode code point can
  * be set so that this implementation can recognize it instead when reading. It also recognizes CR
  * and LF themselves as the record delimiter, in addition to CRLF defined in the specification.
  *
  * <p>A few flags are available to extend the behavior. If all is set to {@code false}, the behavior
- * is complied with original and thus strict RFC 4180.
+ * complies with original and thus strict RFC 4180.
  *
  * <p>a) {@code stripFields} controls whether whitespaces that surround each field get eliminated or
  * not. This may be useful when the CSV is comma-aligned with spaces and/or tabs.
@@ -33,7 +32,7 @@ import java.util.List;
  * Enclosing spaces are not included in a field. Originally, escaped fields must follow the field
  * delimiter without anything else in between.
  */
-public class CsvParserRFC4180 implements CsvParser {
+public class CsvParserRfc4180 implements CsvParser {
 
   private final int delimiter;
   private final boolean stripFields;
@@ -41,7 +40,7 @@ public class CsvParserRFC4180 implements CsvParser {
   private final boolean allowVariadicFields;
   private final boolean allowSpaceEncloseEscaped;
 
-  public CsvParserRFC4180(
+  public CsvParserRfc4180(
       int delimiter,
       boolean stripFields,
       boolean allowRecordEndWithEmptyField,
@@ -59,7 +58,7 @@ public class CsvParserRFC4180 implements CsvParser {
     return new RecordReaderImpl(reader);
   }
 
-  /** RFC 4180 implementation of {@code IRecordReader}. This class is not thread safe. */
+  /** RFC 4180 implementation of {@code RecordReader}. This class is not thread-safe. */
   private class RecordReaderImpl implements RecordReader {
 
     private static final String ERROR_ILLEGAL_NUMBER_OF_FIELDS = "Illegal number of fields found";
@@ -74,10 +73,10 @@ public class CsvParserRFC4180 implements CsvParser {
 
     private final Tokenizer tokenizer;
     private Token<TokenKind> token;
-    private int nFields = -1;
+    private int fieldCount = -1;
 
     public RecordReaderImpl(Reader reader) throws IOException {
-      this.tokenizer = new Tokenizer(reader);
+      this.tokenizer = new Tokenizer(reader, delimiter);
       this.token = tokenizer.nextToken();
     }
 
@@ -90,9 +89,9 @@ public class CsvParserRFC4180 implements CsvParser {
     public List<String> readRecord() throws IOException {
       List<String> fields = parseRecord();
       if (!allowVariadicFields) {
-        if (nFields == -1) {
-          nFields = fields.size();
-        } else if (nFields != fields.size()) {
+        if (fieldCount == -1) {
+          fieldCount = fields.size();
+        } else if (fieldCount != fields.size()) {
           // -1 as token is always one step ahead, meaning that it is already
           // on the next line here at the end of record
           int errorLineNo = tokenizer.getLineNumber() - 1;
@@ -149,7 +148,9 @@ public class CsvParserRFC4180 implements CsvParser {
         break;
       }
       String field = sb.toString();
-      if (stripFields && !isEscapedField) field = field.strip();
+      if (stripFields && !isEscapedField) {
+        field = field.strip();
+      }
       return field;
     }
 
@@ -158,8 +159,9 @@ public class CsvParserRFC4180 implements CsvParser {
         switch (token.getKind()) {
           case NEWLINE:
           case EOF:
-            if (!allowRecordEndWithEmptyField && sb.length() == 0)
+            if (!allowRecordEndWithEmptyField && sb.length() == 0) {
               throw new ParserException(ERROR_EMPTY_FIELD_FOLLOWED_BY_EOR, tokenizer);
+            }
           // caution: fall though otherwise
           case DELIM:
             return;
@@ -215,37 +217,23 @@ public class CsvParserRFC4180 implements CsvParser {
     }
   }
 
-  private class Tokenizer implements Token.ITokenizer<TokenKind>, TextLocator {
+  private static class Tokenizer implements Token.Tokenizer<TokenKind>, TextLocator {
 
     private static final int CP_LINE_FEED = 0x0a;
     private static final int CP_CARRIAGE_RETURN = 0x0d;
     private static final int CP_DOUBLE_QUOTE = 0x22;
 
-    private final Reader reader;
+    private final CodePointReader reader;
+    private final int delimiter;
     private int lastCodePoint;
     private boolean isNewlineJustRead = false;
     private int lineNo = 0;
     private int characterNo = 0;
 
-    public Tokenizer(Reader reader) throws IOException {
-      this.reader = reader;
-      this.lastCodePoint = readCodePoint();
-    }
-
-    @Override
-    public Reader getReader() {
-      return reader;
-    }
-
-    @Override
-    public void onReadCodePoint() {
-      if (!isNewlineJustRead) {
-        characterNo++;
-      } else {
-        isNewlineJustRead = false;
-        lineNo++;
-        characterNo = 0;
-      }
+    public Tokenizer(Reader reader, int delimiter) throws IOException {
+      this.reader = new CodePointReader(reader);
+      this.delimiter = delimiter;
+      this.lastCodePoint = this.reader.readCodePoint();
     }
 
     @Override
@@ -284,7 +272,7 @@ public class CsvParserRFC4180 implements CsvParser {
           type = TokenKind.EOF;
           break;
       }
-      return new Token<TokenKind>(type, value);
+      return new Token<>(type, value);
     }
 
     @Override
@@ -299,12 +287,19 @@ public class CsvParserRFC4180 implements CsvParser {
 
     private CharacterClass mapCodePoint(int codePoint) {
       CharacterClass type = CharacterClass.LETTER;
-      if (codePoint < 0) type = CharacterClass.EOF;
-      else if (codePoint == delimiter) type = CharacterClass.DELIM;
-      else if (codePoint == CP_LINE_FEED) type = CharacterClass.LF;
-      else if (codePoint == CP_CARRIAGE_RETURN) type = CharacterClass.CR;
-      else if (codePoint == CP_DOUBLE_QUOTE) type = CharacterClass.QUOTE;
-      else if (Character.isWhitespace(codePoint)) type = CharacterClass.SPACE;
+      if (codePoint < 0) {
+        type = CharacterClass.EOF;
+      } else if (codePoint == delimiter) {
+        type = CharacterClass.DELIM;
+      } else if (codePoint == CP_LINE_FEED) {
+        type = CharacterClass.LF;
+      } else if (codePoint == CP_CARRIAGE_RETURN) {
+        type = CharacterClass.CR;
+      } else if (codePoint == CP_DOUBLE_QUOTE) {
+        type = CharacterClass.QUOTE;
+      } else if (Character.isWhitespace(codePoint)) {
+        type = CharacterClass.SPACE;
+      }
       return type;
     }
 
@@ -336,6 +331,22 @@ public class CsvParserRFC4180 implements CsvParser {
       lastCodePoint = readCodePoint();
       return c;
     }
+
+    private int readCodePoint() throws IOException {
+      int cp = reader.readCodePoint();
+      updateTextLocation();
+      return cp;
+    }
+
+    private void updateTextLocation() {
+      if (!isNewlineJustRead) {
+        characterNo++;
+      } else {
+        isNewlineJustRead = false;
+        lineNo++;
+        characterNo = 0;
+      }
+    }
   }
 
   private enum TokenKind {
@@ -344,7 +355,7 @@ public class CsvParserRFC4180 implements CsvParser {
     NEWLINE,
     DELIM,
     QUOTE,
-    EOF;
+    EOF
   }
 
   private enum CharacterClass {
@@ -354,6 +365,6 @@ public class CsvParserRFC4180 implements CsvParser {
     LF,
     LETTER,
     SPACE,
-    EOF;
+    EOF
   }
 }

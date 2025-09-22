@@ -7,7 +7,7 @@ public enum Newline {
 
   private final String expression;
 
-  private Newline(String expression) {
+  Newline(String expression) {
     this.expression = expression;
   }
 

@@ -1,6 +1,6 @@
 package io.github.shimies.csv;
 
-import io.github.shimies.csv.impl.CsvParserRFC4180;
+import io.github.shimies.csv.impl.CsvParserRfc4180;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -20,21 +20,21 @@ import java.util.List;
 @FunctionalInterface
 public interface CsvParser {
 
-  static CsvParser ofStrictRFC4180(boolean stripFields) {
-    return new CsvParserRFC4180(',', stripFields, false, false, false);
+  static CsvParser ofStrictRfc4180(boolean stripFields) {
+    return new CsvParserRfc4180(',', stripFields, false, false, false);
   }
 
-  static CsvParser ofStrictRFC4180ForVariadicFields(boolean stripFields) {
-    return new CsvParserRFC4180(',', stripFields, false, true, false);
+  static CsvParser ofStrictRfc4180ForVariadicFields(boolean stripFields) {
+    return new CsvParserRfc4180(',', stripFields, false, true, false);
   }
 
-  static CsvParser ofVariantRFC4180(
+  static CsvParser ofVariantRfc4180(
       int delimiter,
       boolean stripFields,
       boolean allowRecordEndWithEmptyField,
       boolean allowVariadicFields,
       boolean allowSpaceEncloseEscaped) {
-    return new CsvParserRFC4180(
+    return new CsvParserRfc4180(
         delimiter,
         stripFields,
         allowRecordEndWithEmptyField,

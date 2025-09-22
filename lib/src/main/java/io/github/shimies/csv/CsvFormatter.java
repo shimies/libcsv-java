@@ -1,6 +1,6 @@
 package io.github.shimies.csv;
 
-import io.github.shimies.csv.impl.CsvFormatterRFC4180;
+import io.github.shimies.csv.impl.CsvFormatterRfc4180;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -14,19 +14,19 @@ import java.util.List;
  * CSVs.
  *
  * <p>A record is expressed by {@code List<String>}, and an entire CSV is expressed by {@code
- * List<List<String>>}. {@code ICsvFormatter} is immutable, and can be used to format multiple
+ * List<List<String>>}. {@code CsvFormatter} is immutable, and can be used to format multiple
  * table-like data.
  */
 @FunctionalInterface
 public interface CsvFormatter {
 
-  static CsvFormatter ofRFC4180() {
-    return CsvFormatter.ofRFC4180(',', Newline.CRLF, false);
+  static CsvFormatter ofRfc4180() {
+    return CsvFormatter.ofRfc4180(',', Newline.CRLF, false);
   }
 
-  static CsvFormatter ofRFC4180(
+  static CsvFormatter ofRfc4180(
       int delimiter, Newline newline, boolean allowRecordEndWithEmptyField) {
-    return new CsvFormatterRFC4180(delimiter, newline.toString(), allowRecordEndWithEmptyField);
+    return new CsvFormatterRfc4180(delimiter, newline.toString(), allowRecordEndWithEmptyField);
   }
 
   RecordWriter newRecordWriter(Writer writer) throws IOException;
