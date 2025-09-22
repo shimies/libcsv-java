@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE suppressions PUBLIC
+        "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+        "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+
+<suppressions>
+    <suppress checks="Indentation"/>
+    <suppress checks="FallThrough" files="CsvParserRfc4180.java"/>
+    <suppress checks="MissingSwitchDefault" files="CsvParserRfc4180.java"/>
+    <suppress checks="AvoidStarImport" files="src/test/java/.*[.]java"/>
+    <suppress checks="MissingJavadocMethod" files="src/test/java/.*[.]java"/>
+    <suppress checks="AvoidEscapedUnicodeCharacters" files="src/test/java/.*[.]java"/>
+</suppressions>
