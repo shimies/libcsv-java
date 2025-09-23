@@ -8,10 +8,10 @@ import java.io.Writer;
 import java.util.List;
 
 /**
- * RFC 4180 implementation of {@code CsvFormatter}.
+ * RFC 4180 implementation of {@link CsvFormatter}.
  *
  * <p>Besides a comma and CRLF defined in RFC 4180 as the field delimiter and the record delimiter,
- * arbitrary Unicode code point and {@code String} can be respectively set so that this
+ * arbitrary Unicode code point and {@link String} can be respectively set so that this
  * implementation can use them instead when writing.
  *
  * <p>RFC 4180 also forbids an empty field at the end of the record. For example, an empty record
@@ -29,6 +29,13 @@ public class CsvFormatterRfc4180 implements CsvFormatter {
   private final String recordDelimiter;
   private final boolean allowRecordEndWithEmptyField;
 
+  /**
+   * Constructs.
+   *
+   * @param fieldDelimiter the field delimiter character
+   * @param recordDelimiter the record delimiter string
+   * @param allowRecordEndWithEmptyField whether to allow records ending with an empty field
+   */
   public CsvFormatterRfc4180(
       int fieldDelimiter, String recordDelimiter, boolean allowRecordEndWithEmptyField) {
     this.delimiter = fieldDelimiter;
@@ -37,12 +44,18 @@ public class CsvFormatterRfc4180 implements CsvFormatter {
     this.allowRecordEndWithEmptyField = allowRecordEndWithEmptyField;
   }
 
+  /**
+   * Creates a {@link RecordWriter} for writing CSV records into a {@link Writer}.
+   *
+   * @param writer the {@link Writer} to write records into
+   * @return an instance of {@link RecordWriter}
+   */
   @Override
   public RecordWriter newRecordWriter(Writer writer) {
     return new RecordWriterImpl(writer);
   }
 
-  /** RFC 4180 implementation of {@code RecordWriter}. This class is not thread-safe. */
+  /** RFC 4180 implementation of {@link RecordWriter}. This class is not thread-safe. */
   private class RecordWriterImpl implements RecordWriter {
 
     private final Writer writer;
@@ -116,7 +129,7 @@ public class CsvFormatterRfc4180 implements CsvFormatter {
     public Tokenizer(String field, int delimiter) throws IOException {
       this.reader = new CodePointReader(new StringReader(field));
       this.delimiter = delimiter;
-      this.lastCodePoint = readCodePoint();
+      readCodePoint();
     }
 
     @Override
@@ -131,7 +144,7 @@ public class CsvFormatterRfc4180 implements CsvFormatter {
       switch (type) {
         case MUST_ESCAPE_DQUOTE:
           value = DOUBLE_QUOTE;
-          lastCodePoint = readCodePoint();
+          readCodePoint();
           break;
         default:
           value = readWhile(type);
@@ -158,13 +171,13 @@ public class CsvFormatterRfc4180 implements CsvFormatter {
       StringBuilder sb = new StringBuilder();
       do {
         sb.append(Character.toChars(lastCodePoint));
-        lastCodePoint = readCodePoint();
+        readCodePoint();
       } while (mapCodePoint(lastCodePoint) == kind);
       return sb.toString();
     }
 
-    private int readCodePoint() throws IOException {
-      return reader.readCodePoint();
+    private void readCodePoint() throws IOException {
+      lastCodePoint = reader.readCodePoint();
     }
   }
 

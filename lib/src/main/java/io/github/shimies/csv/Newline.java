@@ -1,5 +1,6 @@
 package io.github.shimies.csv;
 
+/** Represents newline types for CSV files. */
 public enum Newline {
   LF("\n"),
   CRLF("\r\n"),

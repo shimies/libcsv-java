@@ -7,10 +7,11 @@ import io.github.shimies.csv.TextLocator;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
- * RFC 4180 implementation of {@code CsvParser}.
+ * RFC 4180 implementation of {@link CsvParser}.
  *
  * <p>Besides a comma defined as the field delimiter in RFC 4180, arbitrary Unicode code point can
  * be set so that this implementation can recognize it instead when reading. It also recognizes CR
@@ -40,6 +41,15 @@ public class CsvParserRfc4180 implements CsvParser {
   private final boolean allowVariadicFields;
   private final boolean allowSpaceEncloseEscaped;
 
+  /**
+   * Constructs.
+   *
+   * @param delimiter the field delimiter character
+   * @param stripFields whether to strip whitespace from fields
+   * @param allowRecordEndWithEmptyField whether to allow records ending with an empty field
+   * @param allowVariadicFields whether to allow records with varying field counts
+   * @param allowSpaceEncloseEscaped whether to allow spaces around escaped fields
+   */
   public CsvParserRfc4180(
       int delimiter,
       boolean stripFields,
@@ -53,6 +63,13 @@ public class CsvParserRfc4180 implements CsvParser {
     this.allowSpaceEncloseEscaped = allowSpaceEncloseEscaped;
   }
 
+  /**
+   * Creates a {@link RecordReader} for reading CSV records from a {@link Reader}.
+   *
+   * @param reader the {@link Reader} to read records from
+   * @return an instance of {@link RecordReader}
+   * @throws IOException if an I/O error occurs
+   */
   @Override
   public RecordReader newRecordReader(Reader reader) throws IOException {
     return new RecordReaderImpl(reader);
@@ -98,7 +115,7 @@ public class CsvParserRfc4180 implements CsvParser {
           throw new ParserException(ERROR_ILLEGAL_NUMBER_OF_FIELDS, errorLineNo);
         }
       }
-      return fields;
+      return Collections.unmodifiableList(fields);
     }
 
     private List<String> parseRecord() throws IOException {
@@ -159,7 +176,7 @@ public class CsvParserRfc4180 implements CsvParser {
         switch (token.getKind()) {
           case NEWLINE:
           case EOF:
-            if (!allowRecordEndWithEmptyField && sb.length() == 0) {
+            if (!allowRecordEndWithEmptyField && sb.isEmpty()) {
               throw new ParserException(ERROR_EMPTY_FIELD_FOLLOWED_BY_EOR, tokenizer);
             }
           // caution: fall though otherwise
@@ -233,7 +250,8 @@ public class CsvParserRfc4180 implements CsvParser {
     public Tokenizer(Reader reader, int delimiter) throws IOException {
       this.reader = new CodePointReader(reader);
       this.delimiter = delimiter;
-      this.lastCodePoint = this.reader.readCodePoint();
+      lastCodePoint =
+          this.reader.readCodePoint(); // do not update location for accurate location reporting
     }
 
     @Override
@@ -307,7 +325,7 @@ public class CsvParserRfc4180 implements CsvParser {
       StringBuilder sb = new StringBuilder();
       do {
         sb.append(Character.toChars(lastCodePoint));
-        lastCodePoint = readCodePoint();
+        readCodePoint();
       } while (mapCodePoint(lastCodePoint) == ccls);
       return sb.toString();
     }
@@ -315,11 +333,11 @@ public class CsvParserRfc4180 implements CsvParser {
     private String readNewline(CharacterClass hint) throws IOException {
       StringBuilder sb = new StringBuilder();
       sb.append(Character.toChars(lastCodePoint));
-      lastCodePoint = readCodePoint();
+      readCodePoint();
       if (hint == CharacterClass.CR) {
         if (mapCodePoint(lastCodePoint) == CharacterClass.LF) {
           sb.append(Character.toChars(lastCodePoint));
-          lastCodePoint = readCodePoint();
+          readCodePoint();
         }
       }
       isNewlineJustRead = true;
@@ -328,14 +346,13 @@ public class CsvParserRfc4180 implements CsvParser {
 
     private String readCharacter() throws IOException {
       String c = new String(Character.toChars(lastCodePoint));
-      lastCodePoint = readCodePoint();
+      readCodePoint();
       return c;
     }
 
-    private int readCodePoint() throws IOException {
-      int cp = reader.readCodePoint();
+    private void readCodePoint() throws IOException {
+      lastCodePoint = reader.readCodePoint();
       updateTextLocation();
-      return cp;
     }
 
     private void updateTextLocation() {
